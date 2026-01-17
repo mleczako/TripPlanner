@@ -17,7 +17,6 @@ class SearchPreferences(BaseModel):
     require_pool: Optional[bool] = None
     require_parking: Optional[bool] = None
 
-    limit: int = Field(default=10, ge=1, le=50)
 
 class ProposedStay(BaseModel):
     outbound_flight_id: int

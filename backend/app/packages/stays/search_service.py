@@ -3,103 +3,87 @@ from typing import List, Dict
 
 from sqlalchemy.orm import Session
 
-from app.models.entities import (
-    Flight,
-    Hotel,
-    HotelAvailability,
-    Transfer,
-)
 from app.schemas.search import SearchPreferences, ProposedStay
-from app.packages.stays.filter_service import apply_hotel_filters, nights_between
+from app.packages.stays.filter_service import nights_between
+
+from app.external.flights_adapter import (
+    get_outbound_flights,
+    get_return_flights,
+)
+from app.external.hotels_adapter import get_hotels
+from app.external.availability_adapter import get_available_hotels
+from app.external.transfers_adapter import get_transfers
 
 
 def search_stays(db: Session, prefs: SearchPreferences) -> List[ProposedStay]:
-    outbound_flights = (
-        db.query(Flight)
-        .filter(
-            Flight.from_airport == prefs.from_location,
-            Flight.date == prefs.date_from,
-            Flight.status == "SCHEDULED",
-        )
-        .all()
+    # loty wylotowe
+    outbound_flights = get_outbound_flights(
+        db=db,
+        from_airport=prefs.from_location,
+        date_from=prefs.date_from,
+        to_airport=prefs.to_location,
     )
-
-    if prefs.to_location:
-        outbound_flights = [
-            f for f in outbound_flights if f.to_airport == prefs.to_location
-        ]
 
     if not outbound_flights:
         return []
 
     destinations = {f.to_airport for f in outbound_flights}
 
-    return_flights = (
-        db.query(Flight)
-        .filter(
-            Flight.to_airport == prefs.from_location,
-            Flight.date == prefs.date_to,
-            Flight.status == "SCHEDULED",
-        )
-        .all()
+    # loty powrotne
+    return_flights = get_return_flights(
+        db=db,
+        to_airport=prefs.from_location,
+        date_to=prefs.date_to,
     )
 
     if not return_flights:
         return []
 
-    return_by_city: Dict[str, List[Flight]] = {}
+    return_by_city: Dict[str, List] = {}
     for rf in return_flights:
         return_by_city.setdefault(rf.from_airport, []).append(rf)
 
-    transfers = (
-        db.query(Transfer)
-        .filter(
-            Transfer.location.in_(destinations),
-            Transfer.available.is_(True),
-        )
-        .all()
+    #transfery
+    transfers = get_transfers(
+        db=db,
+        locations=destinations,
     )
 
     if not transfers:
         return []
 
-    transfers_by_city: Dict[str, List[Transfer]] = {}
+    transfers_by_city: Dict[str, List] = {}
     for t in transfers:
         transfers_by_city.setdefault(t.location, []).append(t)
 
-    hotels_q = db.query(Hotel).filter(Hotel.location.in_(destinations))
-    hotels_q = apply_hotel_filters(
-        hotels_q,
-        prefs.min_hotel_standard,
-        prefs.require_wifi,
-        prefs.require_pool,
-        prefs.require_parking,
+    #hotele i filtry
+    hotels = get_hotels(
+        db=db,
+        locations=destinations,
+        min_standard=prefs.min_hotel_standard,
+        require_wifi=prefs.require_wifi,
+        require_pool=prefs.require_pool,
+        require_parking=prefs.require_parking,
     )
-    hotels = hotels_q.all()
 
     if not hotels:
         return []
 
-    hotels_by_city: Dict[str, List[Hotel]] = {}
+    hotels_by_city: Dict[str, List] = {}
     for h in hotels:
         hotels_by_city.setdefault(h.location, []).append(h)
 
-    availabilities = (
-        db.query(HotelAvailability)
-        .filter(
-            HotelAvailability.is_available.is_(True),
-            HotelAvailability.max_guests >= prefs.guests,
-            HotelAvailability.date_from <= prefs.date_from,
-            HotelAvailability.date_to >= prefs.date_to,
-        )
-        .all()
+    #dostepnosc hotelu
+    available_hotel_ids = get_available_hotels(
+        db=db,
+        date_from=prefs.date_from,
+        date_to=prefs.date_to,
+        guests=prefs.guests,
     )
 
-    if not availabilities:
+    if not available_hotel_ids:
         return []
-
-    avail_by_hotel = {a.hotel_id for a in availabilities}
-
+    #skladanie kombinacji
     nights = nights_between(prefs.date_from, prefs.date_to)
     results: List[ProposedStay] = []
 
@@ -125,7 +109,7 @@ def search_stays(db: Session, prefs: SearchPreferences) -> List[ProposedStay]:
 
         for return_flight in return_by_city[city]:
             for hotel in city_hotels:
-                if hotel.id not in avail_by_hotel:
+                if hotel.id not in available_hotel_ids:
                     continue
 
                 hotel_cost = float(hotel.price_per_night) * nights
