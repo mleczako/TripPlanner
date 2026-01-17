@@ -1,4 +1,8 @@
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
+import random
+
+from sqlalchemy.orm import Session
+
 from app.database import SessionLocal
 from app.models.entities import (
     Flight,
@@ -7,105 +11,198 @@ from app.models.entities import (
     Transfer,
     NewsEvent,
 )
-CITIES = ["MAD", "BCN", "LIS", "ROM", "PAR"]
+
+
+BASE_DATE = date(2026, 1, 1)
+CITIES = ["MAD", "BCN", "ROM", "PAR", "BER"]
+
 
 
 def seed():
-    db = SessionLocal()
+    db: Session = SessionLocal()
 
     try:
-        hotels = []
-        for i in range(1, 51):
-            city = CITIES[i % len(CITIES)]
-            hotels.append(
-                Hotel(
-                    name=f"Hotel {city} #{i}",
-                    location=city,
-                    standard=(i % 5) + 1,
-                    price_per_night=120 + (i % 8) * 30,
-                    has_wifi=True,
-                    has_pool=(i % 3 == 0),
-                    has_parking=(i % 2 == 0),
+        print("Seeding database...")
+
+        flights = []
+
+    
+        for day in range(10):
+            out_date = BASE_DATE + timedelta(days=day)
+            back_date = out_date + timedelta(days=5)
+
+            for city in CITIES:
+              
+                flights.append(
+                    Flight(
+                        from_airport="WAW",
+                        to_airport=city,
+                        date=out_date,
+                        price=300,
+                        status="SCHEDULED",
+                    )
                 )
-            )
-
-        db.add_all(hotels)
-        db.flush()  
-
-
-        availability = []
-        base_date = date(2026, 1, 1)
-
-        for hotel in hotels:
-            for j in range(12):
-                start = base_date + timedelta(days=j * 14)
-                end = start + timedelta(days=10)
-
-                availability.append(
-                    HotelAvailability(
-                        hotel_id=hotel.id,
-                        date_from=start,
-                        date_to=end,
-                        max_guests=(j % 4) + 1,
-                        is_available=True if j % 6 != 0 else False,
+               
+                flights.append(
+                    Flight(
+                        from_airport="WAW",
+                        to_airport=city,
+                        date=out_date,
+                        price=850,
+                        status="SCHEDULED",
+                    )
+                )
+              
+                flights.append(
+                    Flight(
+                        from_airport=city,
+                        to_airport="WAW",
+                        date=back_date,
+                        price=320,
+                        status="SCHEDULED",
+                    )
+                )
+             
+                flights.append(
+                    Flight(
+                        from_airport=city,
+                        to_airport="WAW",
+                        date=back_date,
+                        price=900,
+                        status="SCHEDULED",
                     )
                 )
 
-        db.add_all(availability)
-
-        flights = []
-        for i in range(50):
-            city = CITIES[i % len(CITIES)]
-            flight_date = base_date + timedelta(days=(i % 10) * 14 + 3)
-
-            flights.append(
-                Flight(
-                    from_airport="WAW",
-                    to_airport=city,
-                    date=flight_date,
-                    price=350 + (i % 10) * 40,
-                    status="SCHEDULED",
-                )
-            )
-
         db.add_all(flights)
+        print(f"Flights: {len(flights)}")
+
+        hotels = []
+
+        HOTEL_NAMES = {
+            "MAD": [
+                "Hotel Sol Madrid",
+                "Gran Via Palace",
+                "Royal Madrid Center",
+                "Plaza Mayor Hotel",
+                "Castilla Comfort Hotel",
+            ],
+            "BCN": [
+                "Barcelona Beach Resort",
+                "Hotel Catalunya Central",
+                "Mediterranean Palace",
+                "Costa Brava Inn",
+                "Sagrada Familia Hotel",
+            ],
+            "ROM": [
+                "Roma Imperial Hotel",
+                "Colosseum View Inn",
+                "Vatican Gardens Hotel",
+                "Trastevere Boutique Hotel",
+                "Roman Forum Palace",
+            ],
+            "PAR": [
+                "Paris Lumière Hotel",
+                "Champs-Élysées Palace",
+                "Montmartre Boutique",
+                "Eiffel Tower View Hotel",
+                "Seine Riverside Inn",
+            ],
+            "BER": [
+                "Berlin Central Hotel",
+                "Brandenburg Gate Inn",
+                "Museum Island Hotel",
+                "Alexanderplatz Suites",
+                "Checkpoint Charlie Hotel",
+            ],
+        }
+
+        for city, names in HOTEL_NAMES.items():
+            for name in names:
+                hotels.append(
+                    Hotel(
+                        name=name,
+                        location=city,
+                        standard=random.randint(2, 5),
+                        price_per_night=random.choice([180, 220, 260, 320, 400]),
+                        has_wifi=True,
+                        has_pool=random.choice([True, False]),
+                        has_parking=random.choice([True, False]),
+                    )
+                )
+
+        db.add_all(hotels)
+        db.flush()  
+        print(f"✔ Hotels: {len(hotels)}")
+
+        availabilities = []
+
+        for hotel in hotels:
+            start = BASE_DATE
+
+            for _ in range(random.randint(5, 8)):
+                length = random.randint(4, 12)
+
+                date_from = start
+                date_to = start + timedelta(days=length)
+
+                availabilities.append(
+                    HotelAvailability(
+                        hotel_id=hotel.id,
+                        date_from=date_from,
+                        date_to=date_to,
+                        max_guests=random.choice([2, 3, 4, 5, 6]),
+                        is_available=random.choice([True, True, True, False]),
+                    )
+                )
+
+                start = date_to + timedelta(days=random.randint(1, 5))
+
+        db.add_all(availabilities)
+        print(f"✔ HotelAvailability: {len(availabilities)}")
 
         transfers = []
+
         for city in CITIES:
-            transfers.extend([
-                Transfer(type="BUS", location=city, price=35, available=True),
-                Transfer(type="TRAIN", location=city, price=55, available=True),
-                Transfer(type="TAXI", location=city, price=120, available=True),
-            ])
-
-        db.add_all(transfers)
-
-        news = []
-        for i in range(10):
-            city = CITIES[i % len(CITIES)]
-            start = datetime.utcnow() + timedelta(days=i * 2)
-
-            news.append(
-                NewsEvent(
-                    type="WEATHER_ALERT" if i % 2 == 0 else "TRANSPORT_STRIKE",
-                    location=city,
-                    start_time=start,
-                    end_time=start + timedelta(hours=12),
-                    severity="HIGH" if i % 3 == 0 else "MEDIUM",
-                    processed=False,
-                )
+            transfers.extend(
+                [
+                    Transfer(type="BUS", location=city, price=40, available=True),
+                    Transfer(type="TRAIN", location=city, price=60, available=True),
+                    Transfer(type="TAXI", location=city, price=90, available=True),
+                ]
             )
 
+        db.add_all(transfers)
+        print(f"✔ Transfers: {len(transfers)}")
+
+        news = [
+            NewsEvent(
+                type="WEATHER_ALERT",
+                location="PAR",
+                start_time=datetime(2026, 1, 6, 6, 0),
+                end_time=datetime(2026, 1, 7, 23, 0),
+                severity="MEDIUM",
+                processed=False,
+            ),
+            NewsEvent(
+                type="AIRPORT_CLOSED",
+                location="MAD",
+                start_time=datetime(2026, 1, 10, 0, 0),
+                end_time=datetime(2026, 1, 11, 23, 59),
+                severity="HIGH",
+                processed=False,
+            ),
+        ]
+
         db.add_all(news)
+        print(f"✔ NewsEvents: {len(news)}")
 
         db.commit()
-        print(" SEED COMPLETED – DATA IS CONSISTENT AND USABLE")
+        print(" SEED COMPLETED SUCCESSFULLY")
 
     except Exception as e:
         db.rollback()
         print("SEED FAILED:", e)
         raise
-
     finally:
         db.close()
 
