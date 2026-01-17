@@ -137,7 +137,39 @@ def search_stays(db: Session, prefs: SearchPreferences) -> List[ProposedStay]:
                         )
                     )
 
-                    if len(results) >= prefs.limit:
-                        return sorted(results, key=lambda r: r.total_price)
+                   # if len(results) >= prefs.limit:
+                     #   return sorted(results, key=lambda r: r.total_price)
 
-    return sorted(results, key=lambda r: r.total_price)
+    #brak miejsca docelowego - propozycje z roznymi miastami
+    results = sorted(results, key=lambda r: r.total_price)
+
+    if prefs.to_location is None:
+        selected: List[ProposedStay] = []
+        cities_used: Dict[str, int] = {}
+
+        flight_city_map = {
+            f.id: f.to_airport for f in outbound_flights
+        }
+
+        for r in results:
+            city = flight_city_map.get(r.outbound_flight_id)
+            if city is None:
+                continue
+
+            if city not in cities_used and len(cities_used) >= 5:
+                continue
+
+            cities_used.setdefault(city, 0)
+            if cities_used[city] >= 2:
+                continue
+
+            selected.append(r)
+            cities_used[city] += 1
+
+            if len(selected) == 10:
+                break
+
+        return selected
+
+    return results[:5]
+
