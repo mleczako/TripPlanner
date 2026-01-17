@@ -1,0 +1,74 @@
+<div
+  id="searchModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+>
+  <div class="bg-white p-8 rounded-xl w-full max-w-2xl">
+    <h2 class="text-2xl font-bold mb-4">Dokąd się wybierasz?</h2>
+    <form action="/results" method="get" class="grid grid-cols-2 gap-4">
+      <input
+        type="text"
+        name="startCity"
+        placeholder="Miejsce startu"
+        class="border p-2 rounded"
+      />
+      <input
+        type="text"
+        name="visitedCity"
+        placeholder="Cel podróży"
+        class="border p-2 rounded"
+      />
+      <input type="date" name="startDate" class="border p-2 rounded" />
+      <input type="date" name="endDate" class="border p-2 rounded" />
+      <input
+        type="number"
+        name="guests"
+        placeholder="Liczba gości"
+        class="border p-2 rounded col-span-2"
+      />
+
+      <div class="col-span-2">
+        <label>Max Cena: <span id="priceVal">5000</span> PLN</label>
+        <input
+          type="range"
+          name="maxPrice"
+          min="500"
+          max="20000"
+          step="100"
+          class="w-full"
+          oninput="priceVal.innerText = this.value"
+        />
+      </div>
+
+      <div class="col-span-2 mt-2">
+        <label class="text-sm font-semibold text-gray-700"
+          >Minimalna ocena:
+          <span id="ratingVal" class="text-blue-600">7.0</span> ★</label
+        >
+        <input
+          type="range"
+          name="minRating"
+          min="0"
+          max="10"
+          step="0.1"
+          value="7.0"
+          class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          oninput="ratingVal.innerText = this.value"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="bg-blue-600 text-white p-3 rounded col-span-2 font-bold"
+      >
+        WYSZUKAJ
+      </button>
+      <button
+        type="button"
+        onclick="toggleSearch()"
+        class="text-gray-500 col-span-2"
+      >
+        Anuluj
+      </button>
+    </form>
+  </div>
+</div>

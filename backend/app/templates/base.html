@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TripPlanner</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-50">
+    <nav class="bg-white shadow-sm p-4 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a
+          href="/"
+          class="text-blue-600 font-bold text-2xl flex items-center gap-2"
+        >
+          <i class="fas fa-plane-departure"></i> TripPlanner
+        </a>
+        <div class="flex gap-6 items-center">
+          <button
+            onclick="toggleSearch()"
+            class="flex items-center gap-2 hover:text-blue-600 transition"
+          >
+            <i class="fas fa-search"></i> Wyszukaj
+          </button>
+          <a
+            href="/my-bookings"
+            class="flex items-center gap-2 hover:text-blue-600 transition"
+          >
+            <i class="fas fa-calendar-check"></i> Rezerwacje {% if
+            booked_count() > 0 %}
+            <span class="bg-blue-600 text-white rounded-full px-2 text-xs"
+              >{{ booked_count() }}</span
+            >
+            {% endif %}
+          </a>
+          <div class="border-l h-6 mx-2"></div>
+          <div class="flex items-center gap-2 text-gray-700">
+            <span class="bg-gray-200 p-2 rounded-full text-xs">JK</span> Jan
+            Kowalski
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main>{% block content %} {% endblock %}</main>
+
+    {% include "search_modal.html" %}
+    <script>
+      function toggleSearch() {
+        const modal = document.getElementById("searchModal");
+        modal.classList.toggle("hidden");
+      }
+    </script>
+  </body>
+</html>

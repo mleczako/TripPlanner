@@ -1,0 +1,163 @@
+{% extends "base.html" %} {% block content %}
+<div class="max-w-6xl mx-auto p-6">
+  <a href="javascript:history.back()" class="text-gray-600 mb-4 inline-block"
+    >← Wróć do wyników</a
+  >
+
+  <div class="flex flex-col lg:flex-row gap-8 mt-4">
+    <div class="flex-1">
+      <img
+        src="{{ booking.visited_city.image_url }}"
+        class="w-full h-80 object-cover rounded-2xl shadow-lg"
+      />
+
+      <div class="flex justify-between items-center mt-6">
+        <h1 class="text-3xl font-bold">
+          {{ booking.visited_city.name }} - Pobyt
+        </h1>
+        <div
+          class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg font-bold"
+        >
+          ★ {{ booking.rating }}
+        </div>
+      </div>
+      <p class="text-gray-500 flex items-center gap-2 mt-2">
+        <i class="fas fa-map-marker-alt"></i> {{ booking.visited_city.name }},
+        {{ booking.hotel.address }}
+      </p>
+
+      <div class="mt-8 border-t pt-6">
+        <h3 class="font-bold text-lg mb-4 text-blue-600">Składniki pakietu:</h3>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl">
+            <span class="text-2xl">🏨</span>
+            <div>
+              <p class="font-bold">{{ booking.hotel.name }}</p>
+              <div
+                class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg font-bold"
+              >
+                ★ {{ booking.hotel.rating }}
+              </div>
+              <p class="text-sm text-gray-500">
+                Pokój dla {{ booking.guests }} osób
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl">
+            <span class="text-2xl">✈️</span>
+            <div>
+              <p class="font-bold">Wylot - {{ booking.start_flight.name }}</p>
+              <p class="text-sm text-gray-500">
+                {{ booking.start_date }} | Wylot z: {{ booking.start_city.name
+                }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl">
+            <span class="text-2xl"> ✈️</span>
+            <div>
+              <p class="font-bold">Powrót - {{ booking.end_flight.name }}</p>
+              <p class="text-sm text-gray-500">
+                {{ booking.end_date }} | Wylot z: {{ booking.visited_city.name
+                }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl">
+            <span class="text-2xl">🚐</span>
+            <div
+              class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg font-bold"
+            >
+              ★ {{ booking.start_transfer.rating }}
+            </div>
+            <div>
+              <p class="font-bold">{{ booking.start_transfer.name }}</p>
+              <p class="text-sm text-gray-500">
+                Typ: {{ booking.start_transfer.type }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-xl">
+            <span class="text-2xl">🚐</span>
+            <div
+              class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg font-bold"
+            >
+              ★ {{ booking.end_transfer.rating }}
+            </div>
+            <div>
+              <p class="font-bold">{{ booking.end_transfer.name }}</p>
+              <p class="text-sm text-gray-500">
+                Typ: {{ booking.end_transfer.type }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full lg:w-96">
+      <div class="bg-white border rounded-2xl p-6 shadow-sm sticky top-6">
+        <h3 class="text-xl font-bold mb-6">Podsumowanie</h3>
+
+        <div class="space-y-3 text-gray-600 border-b pb-6 mb-6">
+          <div class="flex justify-between">
+            <span>Termin:</span>
+            <span class="font-medium"
+              >{{ booking.start_date }} - {{ booking.end_date }}</span
+            >
+          </div>
+          <div class="flex justify-between">
+            <span>Liczba gości:</span>
+            <span class="font-medium">{{ booking.guests }} osoby</span>
+          </div>
+        </div>
+
+        <div class="space-y-4 mb-8">
+          <div class="flex justify-between">
+            <span>Hotel:</span
+            ><span class="text-sm text-gray-600">
+              {% set n_days = (booking.end_date - booking.start_date).days %} {{
+              booking.hotel.price }} PLN * {{ n_days }} dni =
+              <span class="font-bold text-black">
+                {{ booking.hotel.price * n_days }} PLN
+              </span>
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span>Loty:</span
+            ><span
+              >{{ booking.start_flight.price + booking.end_flight.price }}
+              PLN</span
+            >
+          </div>
+          <div class="flex justify-between">
+            <span>Transfery:</span
+            ><span
+              >{{ booking.start_transfer.price + booking.end_transfer.price }}
+              PLN</span
+            >
+          </div>
+          <div
+            class="flex justify-between font-bold text-xl text-black border-t pt-4"
+          >
+            <span>Łącznie:</span>
+            <span>{{ booking.total_price }} PLN</span>
+          </div>
+        </div>
+
+        <form action="/book/{{ booking.id }}" method="post">
+          <button
+            type="submit"
+            class="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition-colors"
+          >
+            Potwierdź wybór
+          </button>
+        </form>
+        <p class="text-center text-xs text-gray-400 mt-4">
+          Przejdziesz do bezpiecznej płatności
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
