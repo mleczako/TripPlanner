@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg mt-10">
+    
+    <h1 class="text-3xl font-bold mb-6 border-b pb-4">Opłacanie pobytu</h1>
+    
+    {% if error %}
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
+        <div class="flex items-center">
+            <span class="text-2xl mr-2">⚠️</span>
+            <div>
+                <p class="font-bold">Płatność nieudana</p>
+                <p>{{ error }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="bg-gray-50 p-6 rounded-lg mb-8 border">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">Podsumowanie rezerwacji</h2>
+        <div class="flex justify-between mb-2">
+            <span>Cel podróży:</span>
+            <span class="font-medium">{{ booking.visited_city.name }}</span>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span>Termin:</span>
+            <span>{{ booking.start_date }} - {{ booking.end_date }}</span>
+        </div>
+        <div class="flex justify-between mt-4 pt-4 border-t text-xl font-bold text-blue-700">
+            <span>Do zapłaty:</span>
+            <span>{{ booking.total_price }} PLN</span>
+        </div>
+    </div>
+
+    <form action="/payment/{{ booking.id }}" method="POST" class="space-y-6">
+        
+        <div>
+            <label class="block text-gray-700 font-bold mb-2">Wybierz metodę płatności</label>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="border-2 rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 transition">
+                    <input type="radio" name="paymentMethod" value="blik" checked class="mb-2" onclick="toggleMethod('blik')">
+                    <span class="font-bold">BLIK</span>
+                    <span class="text-xs text-gray-500">Szybka płatność kodem</span>
+                </label>
+                <label class="border-2 rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 transition">
+                    <input type="radio" name="paymentMethod" value="card" class="mb-2" onclick="toggleMethod('card')">
+                    <span class="font-bold">Karta Płatnicza</span>
+                    <span class="text-xs text-gray-500">Visa / Mastercard</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="paymentField" class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <label id="inputLabel" class="block text-gray-700 font-bold mb-2">Kod BLIK (6 cyfr)</label>
+            <input 
+                type="text" 
+                name="paymentToken" 
+                id="tokenInput"
+                placeholder="000 000" 
+                class="w-full p-3 border rounded-lg text-xl tracking-widest text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                required
+            >
+        </div>
+
+        <div class="flex gap-4 pt-4">
+            <button 
+                type="submit" 
+                name="action" 
+                value="cancel" 
+                class="w-1/3 bg-gray-200 text-gray-700 font-bold py-3 rounded-lg hover:bg-gray-300 transition"
+                formnovalidate
+            >
+                Anuluj
+            </button>
+
+            <button 
+                type="submit" 
+                name="action" 
+                value="pay" 
+                class="w-2/3 bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition shadow-lg flex justify-center items-center gap-2"
+            >
+                <span>🔒</span> Zapłać {{ booking.total_price }} PLN
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleMethod(method) {
+        const label = document.getElementById('inputLabel');
+        const input = document.getElementById('tokenInput');
+        
+        if (method === 'blik') {
+            label.innerText = "Kod BLIK (6 cyfr)";
+            input.placeholder = "000 000";
+            input.setAttribute('minlength', '6');
+            input.setAttribute('maxlength', '6');
+        } else {
+            label.innerText = "Numer Karty (16 cyfr)";
+            input.placeholder = "0000 0000 0000 0000";
+            input.setAttribute('minlength', '16');
+            input.setAttribute('maxlength', '19');
+        }
+    }
+</script>
+{% endblock %}

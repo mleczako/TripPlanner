@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 class Transfer(Base):
     __tablename__ = "transfers"
     id = Column(Integer, primary_key=True)
-    type = Column(String) # np. taxi, bus
+    type = Column(String) 
     name = Column(String)
     date = Column(Date)
     rating = Column(Float)

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database import SessionLocal, engine
+from database import SessionLocal, engine, Base
 import models
 
 CITIES_DATA = [
@@ -26,6 +26,8 @@ CITIES_DATA = [
 ]
 
 def seed_db():
+    Base.metadata.create_all(bind=engine)
+
     db = SessionLocal()
     try:
         if db.query(models.City).count() > 0:
@@ -41,7 +43,7 @@ def seed_db():
             db.add(new_city)
         
         db.commit()
-        print(f"Pomyślnie dodano {len(CITIES_DATA)} miast do bazy danych!")
+        print(f"Pomyślnie dodano {len(CITIES_DATA)} miast do nowej bazy!")
     except Exception as e:
         print(f"Błąd podczas seedowania: {e}")
         db.rollback()

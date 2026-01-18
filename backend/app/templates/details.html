@@ -145,14 +145,9 @@
           </div>
         </div>
 
-        <form action="/book/{{ booking.id }}" method="post">
-          <button
-            type="submit"
-            class="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-gray-800 transition-colors"
-          >
-            Potwierdź wybór
-          </button>
-        </form>
+        <a href="/payment/{{ booking.id }}" class="block w-full text-center bg-black text-white text-xl font-bold py-4 rounded-xl hover:bg-gray-800 transition shadow-lg">
+          Przejdź do płatności 
+        </a>
         <p class="text-center text-xs text-gray-400 mt-4">
           Przejdziesz do bezpiecznej płatności
         </p>
