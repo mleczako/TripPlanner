@@ -4,3 +4,5 @@ sqlalchemy
 alembic
 pydantic
 jinja2
+requests
+python-multipart
