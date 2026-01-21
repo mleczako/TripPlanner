@@ -12,10 +12,11 @@ def min_rating_floor(b: Booking) -> float:
 def create_alternatives_for_disrupted_booking(db: Session, booking: Booking, max_alt: int = 5) -> int:
     if booking.status != "disrupted":
         return 0
-
     dtype = (booking.disruption_type or "").upper()
+    if dtype == "HOTEL":
+        return _generate_hotel_only_alternatives(db, booking, max_alt)
 
-    if dtype in ["WEATHER", "SECURITY", "HOTEL"]:
+    if dtype in ["WEATHER", "SECURITY"]:
         return _generate_full_alternative_stays(db, booking, max_alt)
 
     return 0
@@ -129,3 +130,61 @@ def _get_or_create_transfer(db, data, city_id, t_date):
         db.add(transfer)
     db.flush()
     return transfer
+def _generate_hotel_only_alternatives(db: Session, original: Booking, max_alt: int) -> int:
+    min_r = max(0, float(math.floor(original.rating or 0)) - 2)
+    max_budget = original.total_price or 0
+    nights = (original.end_date - original.start_date).days
+    city = original.visited_city
+    new_bookings_count = 0
+
+    try:
+        resp_h = requests.get(f"{MOCK_API_URL}/external/hotels", 
+                              params={
+                                  "city": city.name, 
+                                  "date_from": original.start_date.isoformat(), 
+                                  "date_to": original.end_date.isoformat(), 
+                                  "guests": original.guests
+                              }, timeout=5)
+        hotels_data = resp_h.json() if resp_h.status_code == 200 else []
+
+    except Exception as e:
+        print(f"Błąd API: {e}")
+        return 0
+
+    for h_json in hotels_data:
+        if new_bookings_count >= max_alt: break
+
+        if h_json['name'] == original.hotel.name: continue
+        if h_json['rating'] < min_r: continue 
+
+        new_hotel_total = h_json['price_per_night'] * nights
+        old_hotel_total = original.hotel.price * nights
+        
+        new_total_price = original.total_price - old_hotel_total + new_hotel_total
+
+        if new_total_price > max_budget: continue
+
+        h_obj = _get_or_create_hotel(db, h_json, city.id, original.start_date, original.end_date)
+
+        alt_booking = Booking(
+            status="prepared",
+            parent_booking_id=original.id,
+            hotel_id=h_obj.id,
+            start_transfer_id=original.start_transfer_id,
+            end_transfer_id=original.end_transfer_id,
+            start_flight_id=original.start_flight_id,
+            end_flight_id=original.end_flight_id,
+            start_date=original.start_date,
+            end_date=original.end_date,
+            guests=original.guests,
+            start_city_id=original.start_city_id,
+            visited_city_id=original.visited_city_id,
+            total_price=new_total_price,
+            rating=h_obj.rating,
+            disruption_message=f"Hotel zastępczy w {city.name}"
+        )
+        db.add(alt_booking)
+        new_bookings_count += 1
+
+    db.commit()
+    return new_bookings_count

@@ -50,9 +50,9 @@ def get_external_hotels(city: str, date_from: date, date_to: date, guests: int):
             "capacity": capacity,
             "rating": round(random.uniform(7.0, 9.9), 1),
             "price_per_night": random.randint(200, 800) * guests,
-            "has_wifi" : random.choices([True, False], weights=[4, 6])[0],
-            "has_pool" : random.choices([True, False], weights=[4, 6])[0],
-            "has_restaurant":  random.choices([True, False], weights=[4, 6])[0]
+            "has_wifi" : random.choices([True, False], weights=[8, 2])[0],
+            "has_pool" : random.choices([True, False], weights=[6, 4])[0],
+            "has_restaurant":  random.choices([True, False], weights=[7, 3])[0]
 
         })
     return hotels
