@@ -15,8 +15,12 @@ def create_alternatives_for_disrupted_booking(db: Session, booking: Booking, max
     dtype = (booking.disruption_type or "").upper()
     if dtype == "HOTEL":
         return _generate_hotel_only_alternatives(db, booking, max_alt)
-
-    if dtype in ["WEATHER", "SECURITY"]:
+    elif dtype == "FLIGHT":
+        return _generate_flight_only_alternatives(db, booking, max_alt)
+    
+    elif dtype == "TRANSFER":
+        return _generate_transfer_only_alternatives(db, booking, max_alt)
+    elif dtype in ["WEATHER", "SECURITY"]:
         return _generate_full_alternative_stays(db, booking, max_alt)
 
     return 0
@@ -182,6 +186,98 @@ def _generate_hotel_only_alternatives(db: Session, original: Booking, max_alt: i
             total_price=new_total_price,
             rating=h_obj.rating,
             disruption_message=f"Hotel zastępczy w {city.name}"
+        )
+        db.add(alt_booking)
+        new_bookings_count += 1
+
+    db.commit()
+    return new_bookings_count
+def _generate_flight_only_alternatives(db: Session, original: Booking, max_alt: int) -> int:
+    """Szuka nowych lotów wyłącznie w tym samym dniu, co oryginalny lot."""
+    city = original.visited_city
+    start_city = original.start_city
+    new_bookings_count = 0
+    current_date = original.start_date
+
+    try:
+        resp_f = requests.get(f"{MOCK_API_URL}/external/flights",
+                              params={
+                                  "origin": start_city.name, 
+                                  "destination": city.name, 
+                                  "date": current_date.isoformat()
+                              },
+                              timeout=3)
+        flights_data = resp_f.json() if resp_f.status_code == 200 else []
+    except Exception as e:
+        print(f"Błąd API Lotów: {e}")
+        return 0
+
+    for f_json in flights_data:
+        if new_bookings_count >= max_alt: break
+
+        if f_json['flight_number'] == original.start_flight.name:
+            continue
+
+        f_obj = _get_or_create_flight(db, f_json, start_city.id, city.id, current_date)
+
+        new_total_price = original.total_price - original.start_flight.price + f_json['price']
+
+        alt_booking = Booking(
+            status="prepared",
+            parent_booking_id=original.id,
+            start_flight_id=f_obj.id,         
+            hotel_id=original.hotel_id,        
+            end_flight_id=original.end_flight_id,
+            start_transfer_id=original.start_transfer_id,
+            end_transfer_id=original.end_transfer_id,
+            start_date=current_date,           
+            end_date=original.end_date,
+            guests=original.guests,
+            start_city_id=original.start_city_id,
+            visited_city_id=original.visited_city_id,
+            total_price=new_total_price,
+            rating=original.rating,
+            disruption_message=f"Alternatywny lot w dniu {current_date}"
+        )
+        db.add(alt_booking)
+        new_bookings_count += 1
+
+    db.commit()
+    return new_bookings_count
+def _generate_transfer_only_alternatives(db: Session, original: Booking, max_alt: int) -> int:
+    city = original.visited_city
+    new_bookings_count = 0
+
+    try:
+        resp_t = requests.get(f"{MOCK_API_URL}/external/transfers", params={"city": city.name}, timeout=3)
+        transfers_data = resp_t.json() if resp_t.status_code == 200 else []
+    except: return 0
+
+    for t_json in transfers_data:
+        if new_bookings_count >= max_alt: break
+        
+        if t_json['name'] == original.start_transfer.name: continue
+
+        t_obj = _get_or_create_transfer(db, t_json, city.id, original.start_date)
+
+        new_total_price = original.total_price - original.start_transfer.price + t_json['price']
+
+        alt_booking = Booking(
+            status="prepared",
+            parent_booking_id=original.id,
+            start_transfer_id=t_obj.id, 
+            hotel_id=original.hotel_id,
+            start_flight_id=original.start_flight_id,
+            end_flight_id=original.end_flight_id,
+            end_transfer_id=original.end_transfer_id,
+            start_date=original.start_date,
+            end_date=original.end_date,
+            guests=original.guests,
+            start_city_id=original.start_city_id,
+            visited_city_id=original.visited_city_id,
+            total_price=new_total_price,
+            rating=original.rating,
+            disruption_message=f"Nowy transfer: {t_json['type']} w {city.name}"
         )
         db.add(alt_booking)
         new_bookings_count += 1
