@@ -18,6 +18,7 @@ class Booking(Base):
     visited_city_id = Column(Integer, ForeignKey("cities.id"))
     total_price = Column(Float)
     rating = Column(Float, default=0.0)
+    discount = Column(Float, nullable=True)
     hotel = relationship("Hotel")
     start_flight = relationship("Flight", foreign_keys=[start_flight_id])
     end_flight = relationship("Flight", foreign_keys=[end_flight_id])

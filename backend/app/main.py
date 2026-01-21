@@ -9,6 +9,7 @@ from database import engine, Base, get_db, SessionLocal
 from models.booking import Booking
 from models.city import City
 from services.stay_service import generate_stay_proposals
+from sqlalchemy.orm import joinedload
 
 from services.watchdog_service import watchdog_loop
 import asyncio
@@ -135,7 +136,7 @@ async def show_results(
         
         
         query = db.query(Booking).filter(
-            Booking.status == "prepared",
+            Booking.status.in_(["prepared", "special"]),
             Booking.start_date == startDate,
             Booking.end_date == endDate,
             Booking.start_city_id == start_city_obj.id
@@ -174,7 +175,7 @@ async def show_results(
         
         return templates.TemplateResponse("results.html", context)
     
-    specials = db.query(Booking).filter(Booking.status == "prepared").limit(3).all()
+    specials = db.query(Booking).filter(Booking.status.in_(["prepared", "special"])).limit(9).all()
     context["bookings"] = specials
     return templates.TemplateResponse("results.html", context)
 
@@ -275,21 +276,38 @@ async def process_payment(
     
 @app.get("/my-bookings")
 async def my_bookings(request: Request, db: Session = Depends(get_db)):
-    from sqlalchemy.orm import joinedload 
-    
+
     bookings = (
         db.query(Booking)
-        .options(joinedload(Booking.visited_city)) 
-        .filter(Booking.status.in_(["booked", "disrupted", "risk_accepted"]))
-        .order_by(Booking.start_date)
+        .options(joinedload(Booking.visited_city))
+        .filter(Booking.status.in_(["booked", "disrupted", "risk_accepted", "completed", "canceled"]))
+        .order_by(Booking.start_date.desc())
         .all()
     )
+
+    today = date.today()
+    total_res = len([b for b in bookings if b.status != "canceled"])
+    upcoming = len([b for b in bookings if b.start_date > today and b.status not in ["canceled", "completed"]])
+    total_spent = sum(b.total_price for b in bookings if b.status != "canceled")
+    
+    total_saved = 0
+    for b in bookings:
+        if b.discount and b.discount > 0 and b.status != "canceled":
+            original_price = b.total_price / (1 - (b.discount / 100))
+            total_saved += (original_price - b.total_price)
 
     return templates.TemplateResponse(
         "booked.html",
         {
             "request": request,
-            "bookings": bookings
+            "bookings": bookings,
+            "stats": {
+                "total": total_res,
+                "upcoming": upcoming,
+                "spent": round(total_spent, 2),
+                "saved": round(total_saved, 2)
+            },
+            "today": today
         }
     )
 
@@ -467,3 +485,20 @@ async def alternative_details(
 async def check_disruptions(db: Session = Depends(get_db)):
     count = db.query(Booking).filter(Booking.status == "disrupted").count()
     return {"disrupted_count": count}
+
+@app.get("/special-offers")
+async def special_offers(request: Request, db: Session = Depends(get_db)):
+    special_bookings = (
+        db.query(Booking)
+        .filter(Booking.status == "special")
+        .all()
+    )
+    
+    return templates.TemplateResponse(
+        "special_offers.html", 
+        {
+            "request": request, 
+            "bookings": special_bookings,
+            "empty": len(special_bookings) == 0
+        }
+    )

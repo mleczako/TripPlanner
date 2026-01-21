@@ -1,20 +1,53 @@
 {% extends "base.html" %} {% block content %}
+
 <div class="p-8 max-w-7xl mx-auto">
-  <div class="flex justify-between items-end mb-8">
-    <div>
-      <h1 class="text-2xl font-bold">Dostępne pobyty</h1>
-      <p class="text-gray-500 text-sm">
-        Znaleziono {{ bookings|length }} propozycji dopasowanych do filtrów
-      </p>
+  <div class="flex items-center justify-between mb-2">
+    <h1 class="text-2xl font-bold flex items-center gap-2">
+      <span class="text-orange-500">⚡</span> Oferty specjalne
+    </h1>
+    <div class="flex gap-2">
+      <span
+        class="bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+      >
+        <i class="fas fa-clock"></i> Oferty czasowe
+      </span>
+      <span
+        class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"
+      >
+        Zgoda aktywna
+      </span>
     </div>
   </div>
+  <p class="text-gray-500 mb-6">
+    {{ bookings|length }} limitowanych ofert dostępnych teraz | Sprawdzono stan
+    rezerwacji
+  </p>
 
   {% if empty %}
-  <div class="bg-gray-100 p-12 rounded-3xl text-center border-2 border-dashed">
-    <p class="text-gray-500 font-bold text-lg">
-      Brak ofert spełniających kryteria
+  <div
+    class="bg-orange-50 border border-orange-200 rounded-2xl p-12 text-center shadow-sm"
+  >
+    <div
+      class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-orange-500 text-3xl"
+    >
+      <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <h2 class="text-xl font-bold text-gray-800 mb-2">
+      Brak dostępnych ofert specjalnych
+    </h2>
+    <p class="text-gray-600 mb-8 max-w-md mx-auto">
+      Niestety, w tym momencie system nie zawiera żadnych aktywnych ofert
+      limitowanych czasowo. Wszystkie wcześniejsze promocje zostały wyprzedane
+      lub wygasły.
     </p>
+    <a
+      href="/"
+      class="bg-black text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 w-fit mx-auto hover:bg-gray-800 transition shadow-lg"
+    >
+      <i class="fas fa-search"></i> Przejdź do standardowego wyszukiwania
+    </a>
   </div>
+
   {% else %}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
     {% for b in bookings %}
@@ -88,4 +121,5 @@
   </div>
   {% endif %}
 </div>
+
 {% endblock %}
