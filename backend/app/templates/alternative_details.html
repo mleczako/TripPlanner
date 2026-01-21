@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto p-6">
+  <a href="/booking/{{ original_id }}/alternatives/view" class="text-gray-600 mb-4 inline-block">← Wróć do listy propozycji</a>
+
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r-xl">
+    <p class="text-blue-700 font-bold">Podgląd alternatywnej propozycji</p>
+    <p class="text-sm text-blue-600">To jest nowa oferta przygotowana w zamian za Twoją zagrożoną rezerwację.</p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-8">
+    <div class="flex-1">
+      <img src="{{ booking.visited_city.image_url }}" class="w-full h-80 object-cover rounded-2xl shadow-lg" />
+      
+      <div class="flex justify-between items-center mt-6">
+        <h1 class="text-3xl font-bold">{{ booking.visited_city.name }} - Nowa Propozycja</h1>
+        <div class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-lg font-bold">★ {{ booking.rating }}</div>
+      </div>
+
+      <div class="mt-8 space-y-4">
+        <h3 class="font-bold text-lg text-blue-600">Składniki nowej oferty:</h3>
+        
+        <div class="flex items-center gap-4 bg-white border p-4 rounded-xl">
+          <span class="text-2xl">🏨</span>
+          <div class="flex-1">
+            <p class="font-bold">{{ booking.hotel.name }}</p>
+            <p class="text-sm text-gray-500">{{ booking.hotel.address }}</p>
+          </div>
+          {% if booking.hotel.has_wifi %}<span class="text-xs bg-gray-100 p-1 rounded">📶 WiFi</span>{% endif %}
+        </div>
+
+        <div class="flex items-center gap-4 bg-white border p-4 rounded-xl">
+          <span class="text-2xl">✈️</span>
+          <div>
+            <p class="font-bold">Lot tam: {{ booking.start_flight.name }}</p>
+            <p class="text-sm text-gray-500">{{ booking.start_date }} | Z: {{ booking.start_flight.start_city.name }}</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4 bg-white border p-4 rounded-xl">
+          <span class="text-2xl">✈️</span>
+          <div>
+            <p class="font-bold">Lot powrotny: {{ booking.end_flight.name }}</p>
+            <p class="text-sm text-gray-500">{{ booking.end_date }} | Z: {{ booking.visited_city.name }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-white border p-4 rounded-xl">
+          <span class="text-2xl">🚐</span>
+          <div>
+            <p class="font-bold">Transfery na miejscu</p>
+            <p class="text-sm text-gray-500">{{ booking.start_transfer.name }} oraz {{ booking.end_transfer.name }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full lg:w-96">
+      <div class="bg-white border-2 border-blue-100 rounded-2xl p-6 shadow-sm sticky top-6">
+        <h3 class="text-xl font-bold mb-6">Podsumowanie zmiany</h3>
+        
+        <div class="space-y-4 mb-8">
+          <div class="flex justify-between">
+            <span>Nowa cena całkowita:</span>
+            <span class="font-bold">{{ booking.total_price }} PLN</span>
+          </div>
+          <div class="text-xs text-gray-500 italic">
+            * Po zatwierdzeniu, Twoja poprzednia rezerwacja zostanie anulowana, a ta stanie się aktywna.
+          </div>
+        </div>
+
+        <form action="/bookings/{{ original_id }}/accept/{{ booking.id }}" method="post">
+          <button type="submit" class="w-full bg-blue-600 text-white text-xl font-bold py-4 rounded-xl hover:bg-blue-700 transition shadow-lg">
+            Zatwierdzam zmianę
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

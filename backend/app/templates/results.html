@@ -2,54 +2,75 @@
 
 <div class="p-8">
   <h1 class="text-2xl font-bold mb-6">Dostępne pobyty</h1>
-  {% if api_error %}
-  <div class="bg-red-100 border-l-4 border-red-500 p-6 rounded mb-8 shadow-sm">
-    <div class="flex items-center gap-4">
-        <div class="text-3xl">⚠️</div>
-        <div>
-            <p class="text-red-700 font-bold text-lg">Błąd systemów zewnętrznych</p>
-            <p class="text-red-600">
-            Nie udało się pobrać aktualnych ofert (Mock API nie odpowiada). 
-            Sprawdź, czy serwer na porcie 8001 jest uruchomiony.
-            </p>
-        </div>
-    </div>
+
+  {% if error %}
+  <div class="bg-red-100 border-l-4 border-red-500 p-4 rounded mb-6">
+    <p class="text-red-700 font-bold">Błąd wyszukiwania</p>
+    <p class="text-sm text-red-600">{{ error }}</p>
   </div>
-  {% elif empty %}
-  <div class="bg-orange-100 border-l-4 border-orange-500 p-4 rounded">
-    <p class="text-orange-700 font-bold">Brak dostępnych pobytów</p>
-    <p class="text-sm">
-      System pobrał dane, ale nie może ich połączyć w pobyty zgodne z Twoimi
-      preferencjami.
+
+  {% elif api_error %}
+  <div class="bg-red-100 border-l-4 border-red-500 p-6 rounded mb-8 shadow-sm">
+    <p class="font-bold text-red-700 text-lg">⚠️ Błąd systemów zewnętrznych</p>
+    <p class="text-red-600">
+      Nie udało się pobrać aktualnych ofert (Mock API nie odpowiada).
     </p>
   </div>
+
+  {% elif blocking_event %}
+  <div class="bg-orange-100 border-l-4 border-orange-500 p-6 rounded mb-8 shadow-sm">
+    <p class="font-bold text-orange-700 text-lg">⚠️ Ostrzeżenie</p>
+    <p class="text-orange-700">
+      W wybranym miejscu występuje zdarzenie typu:
+      <b>{{ blocking_event.type }}</b> ({{ blocking_event.message }}).
+    </p>
+    <p class="text-sm text-orange-600 mt-1">
+      Oferty są wyświetlane, ale podróż wiąże się z ryzykiem.
+    </p>
+  </div>
+  {% endif %}
+
+  {% if empty %}
+  <div class="bg-gray-100 border-l-4 border-gray-400 p-4 rounded">
+    <p class="font-bold">Brak dostępnych pobytów</p>
+    <p class="text-sm">Nie znaleziono ofert spełniających kryteria.</p>
+  </div>
+
   {% else %}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for b in bookings %}
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden border">
-      <img
-        src="{{ b.visited_city.image_url }}"
-        class="h-48 w-full object-cover"
-      />
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border
+                {% if b.is_risky %}opacity-60{% endif %}">
+      <img src="{{ b.visited_city.image_url }}" class="h-48 w-full object-cover" />
+
       <div class="p-4">
         <div class="flex justify-between items-start">
-          <h3 class="text-xl font-bold">Pobyt w: {{ b.visited_city.name }}</h3>
-          <span class="bg-yellow-400 px-2 py-1 rounded text-xs font-bold"
-            >★ {{ b.rating }}</span
-          >
+          <h3 class="text-xl font-bold">
+            Pobyt w: {{ b.visited_city.name }}
+          </h3>
+          <span class="bg-yellow-400 px-2 py-1 rounded text-xs font-bold">
+            ★ {{ b.rating }}
+          </span>
         </div>
+
         <p class="text-gray-500 text-sm mt-2">
           {{ b.start_date }} - {{ b.end_date }}
         </p>
+
+        {% if b.is_risky %}
+        <p class="text-xs text-orange-600 font-semibold mt-2">
+          ⚠ Oferta objęta ryzykiem zdarzeń losowych
+        </p>
+        {% endif %}
+
         <div class="mt-4 flex justify-between items-center">
-          <span class="text-2xl font-bold text-blue-700"
-            >{{ b.total_price }} PLN</span
-          >
-          <a
-            href="/details/{{ b.id }}"
-            class="bg-black text-white px-4 py-2 rounded-lg"
-            >Zobacz szczegóły</a
-          >
+          <span class="text-2xl font-bold text-blue-700">
+            {{ b.total_price }} PLN
+          </span>
+          <a href="/details/{{ b.id }}"
+             class="bg-black text-white px-4 py-2 rounded-lg">
+            Zobacz szczegóły
+          </a>
         </div>
       </div>
     </div>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto p-12 text-center">
+    <div class="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600 text-3xl">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h1 class="text-2xl font-bold mb-4">Czy na pewno chcesz zachować rezerwację?</h1>
+    <p class="text-gray-600 mb-8">
+        Zdarzenie: <span class="font-bold text-black">{{ booking.disruption_message }}</span><br>
+        Oznacza to, że niektóre usługi mogą być niedostępne lub standard podróży może ulec obniżeniu.
+    </p>
+
+    <div class="bg-gray-50 p-6 rounded-2xl border mb-8 text-left text-sm">
+        <h3 class="font-bold mb-2">Akceptując ryzyko:</h3>
+        <ul class="space-y-2 text-gray-500">
+            <li>• Rezygnujesz z automatycznego prawa do bezpłatnej zmiany na alternatywę w późniejszym terminie.</li>
+            <li>• Twoja rezerwacja zmieni status na "Zaakceptowano ryzyko".</li>
+            <li>• Monitorujemy sytuację na bieżąco.</li>
+        </ul>
+    </div>
+
+    <div class="flex flex-col gap-3">
+        <form action="/bookings/{{ booking.id }}/keep" method="post">
+            <button type="submit" class="w-full bg-orange-600 text-white py-4 rounded-xl font-bold hover:bg-orange-700">
+                Tak, rozumiem ryzyko i zostaję przy wyborze
+            </button>
+        </form>
+        <a href="/my-bookings" class="text-gray-500 font-bold py-2 hover:text-black">Wróć i zastanów się</a>
+    </div>
+</div>
+{% endblock %}

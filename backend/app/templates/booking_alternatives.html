@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto p-8">
+    <div class="mb-8">
+        <a href="/my-bookings" class="text-blue-600 hover:underline">← Powrót do moich rezerwacji</a>
+        <h1 class="text-3xl font-bold mt-4">Bezpieczne alternatywy</h1>
+        <p class="text-gray-600">Znalazłyśmy oferty zastępcze, które nie są zagrożone przez zdarzenie: 
+            <span class="font-bold text-orange-600">{{ booking.disruption_message }}</span>
+        </p>
+    </div>
+
+    {% if not alternatives %}
+    <div class="bg-gray-100 p-10 rounded-2xl text-center">
+        <p class="text-gray-500 italic">Niestety, nie znaleźliśmy dostępnych alternatyw spełniających kryteria budżetowe.</p>
+        <div class="mt-6">
+            <a href="/booking/{{ booking.id }}/cancel/view" class="bg-red-600 text-white px-6 py-3 rounded-xl font-bold">Anuluj rezerwację i otrzymaj zwrot</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="grid grid-cols-1 gap-6">
+        {% for alt in alternatives %}
+        <div class="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-sm hover:border-blue-400 transition flex flex-col md:flex-row justify-between items-center">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold uppercase">Nowa propozycja</span>
+                    <h3 class="text-xl font-bold">{{ alt.visited_city.name }}</h3>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-4">
+                    <div>
+                        <p class="text-gray-400">Hotel</p>
+                        <p class="font-bold">{{ alt.hotel.name or "Wybór w trakcie" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Ocena</p>
+                        <p class="text-yellow-500 font-bold">★ {{ alt.rating }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Różnica w cenie</p>
+                        <p class="font-bold {% if (booking.total_price - alt.total_price) >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ (booking.total_price - alt.total_price) | round(2) }} PLN 
+                            <span class="text-[10px] text-gray-400">(zwrot/dopłata)</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Cena całkowita</p>
+                        <p class="font-bold text-lg">{{ alt.total_price }} PLN</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 md:mt-0 flex gap-4">
+              <a href="/booking/{{ booking.id }}/alternative/{{ alt.id }}/details" 
+                class="bg-gray-100 text-black px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition">
+                Szczegóły propozycji
+              </a>
+
+              <form action="/bookings/{{ booking.id }}/accept/{{ alt.id }}" method="post">
+                  <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition">
+                      Szybki wybór
+                  </button>
+              </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

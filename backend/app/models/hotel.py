@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey,Boolean
 from database import Base
 from sqlalchemy.orm import relationship
 
@@ -14,3 +14,6 @@ class Hotel(Base):
     price = Column(Float)
     city_id = Column(Integer, ForeignKey("cities.id"))
     city = relationship("City")
+    has_wifi = Column(Boolean, default=False)
+    has_pool = Column(Boolean, default=False)
+    has_restaurant = Column(Boolean, default=False)

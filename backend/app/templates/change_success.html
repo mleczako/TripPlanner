@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto p-12 text-center">
+    <div class="bg-white p-10 rounded-3xl shadow-xl border border-green-100">
+        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Zmiana zatwierdzona!</h1>
+        <p class="text-gray-600 mb-8">
+            Twoja poprzednia rezerwacja została anulowana. Nowy plan podróży do 
+            <span class="font-bold text-black">{{ booking.visited_city.name }}</span> 
+            jest już aktywny w Twoim panelu.
+        </p>
+
+        <div class="bg-gray-50 rounded-2xl p-6 mb-8 text-left border border-gray-100">
+            <h3 class="font-bold text-sm uppercase text-gray-400 mb-4">Szczegóły nowej rezerwacji:</h3>
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-600">Nowy Hotel:</span>
+                <span class="font-bold">{{ booking.hotel.name }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Numer rezerwacji:</span>
+                <span class="font-mono font-bold">#{{ booking.id }}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <a href="/my-bookings" class="bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition">
+                Przejdź do moich rezerwacji
+            </a>
+            <a href="/" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                Wróć do strony głównej
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

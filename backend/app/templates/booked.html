@@ -1,87 +1,92 @@
 {% extends "base.html" %} {% block content %}
 <div class="max-w-6xl mx-auto p-8">
-  <h1 class="text-2xl font-bold">Moje zarezerwowane pobyty</h1>
-  <p class="text-gray-500 text-sm mb-8">
-    System pobrał {{ bookings|length }} zarezerwowanych pobytów dla Twojego
-    konta
-  </p>
+  <h1 class="text-2xl font-bold mb-8">Moje zarezerwowane pobyty</h1>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100 text-center">
-      <p class="text-3xl font-bold text-blue-600">{{ bookings|length }}</p>
-      <p class="text-xs text-blue-400 uppercase font-bold">
-        Wszystkie rezerwacje
-      </p>
-    </div>
-    <div
-      class="bg-green-50 p-6 rounded-2xl border border-green-100 text-center"
-    >
-      <p class="text-3xl font-bold text-green-600">{{ bookings|length }}</p>
-      <p class="text-xs text-green-400 uppercase font-bold">Nadchodzące</p>
-    </div>
-  </div>
+  <div id="status-meta" 
+       data-disrupted-count="{{ bookings | selectattr('status', 'equalto', 'disrupted') | list | length }}"
+       class="hidden"></div>
 
   <div class="space-y-6">
     {% for b in bookings %}
-    <div
-      class="bg-white border rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm relative"
-    >
-      <img
-        src="{{ b.visited_city.image_url }}"
-        class="w-40 h-40 object-cover rounded-xl"
-      />
-
-      <div class="flex-1 w-full">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <h3 class="text-xl font-bold">{{ b.visited_city.name }}</h3>
-            <p class="text-sm text-gray-400">
-              {{ b.visited_city.name }}, {{ b.hotel.address }}
-            </p>
-          </div>
-          <span
-            class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"
-            >✓ Potwierdzona</span
-          >
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <p class="text-gray-400">Termin pobytu</p>
-            <p class="font-bold">{{ b.start_date }}</p>
-            <p class="text-xs">{{ (b.end_date - b.start_date).days }} nocy</p>
-          </div>
-          <div>
-            <p class="text-gray-400">Hotel</p>
-            <p class="font-bold">{{ b.hotel.name }}</p>
-            <p class="text-yellow-500 text-xs">★ {{ b.hotel.rating }}</p>
-          </div>
-          <div>
-            <p class="text-gray-400">Lot</p>
-            <p class="font-bold">{{ b.start_flight.name }}</p>
-            <p class="text-xs">Wylot z {{ b.start_flight.start_city.name }}</p>
-          </div>
-          <div>
-            <p class="text-gray-400">Cena</p>
-            <p class="font-bold text-lg">{{ b.total_price }} PLN</p>
-          </div>
+    <div class="bg-white border rounded-2xl p-6 shadow-sm relative">
+      
+      {% if b.status == "disrupted" %}
+      <div class="bg-orange-50 border border-orange-400 rounded-xl p-4 mb-6">
+        <p class="font-bold text-orange-700 flex items-center gap-2">
+          <i class="fas fa-exclamation-triangle"></i> Wykryto zdarzenie losowe
+        </p>
+        <p class="text-sm text-orange-600 mt-1">{{ b.disruption_message }}</p>
+        <div class="flex flex-wrap gap-3 mt-4">
+          <a href="/booking/{{ b.id }}/alternatives/view" class="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition">Zobacz bezpieczne alternatywy</a>
+          <a href="/booking/{{ b.id }}/keep/view" class="border border-orange-500 text-orange-700 px-4 py-2 rounded-lg text-sm font-bold">Pozostań przy rezerwacji</a>
+          <a href="/booking/{{ b.id }}/cancel/view" class="text-gray-400 hover:text-red-600 px-4 py-2 text-sm font-bold">Anuluj</a>
         </div>
       </div>
+      {% endif %}
 
-      <div class="flex flex-col gap-2 w-full md:w-auto">
-        <button
-          class="bg-gray-100 text-black px-6 py-2 rounded-lg text-sm font-bold"
-        >
-          Pobierz potwierdzenie
-        </button>
-        <a
-          href="/details/{{ b.id }}"
-          class="text-center text-blue-600 text-sm font-bold mt-2"
-          >Szczegóły rezerwacji</a
-        >
+      <div class="flex flex-col md:flex-row gap-6 items-center">
+        {% if b.visited_city and b.visited_city.image_url %}
+          <img src="{{ b.visited_city.image_url }}" class="w-40 h-40 object-cover rounded-xl shadow-md" alt="{{ b.visited_city.name }}" />
+        {% else %}
+          <div class="w-40 h-40 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400">Brak zdjęcia</div>
+        {% endif %}
+
+        <div class="flex-1 w-full">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-xl font-bold">{{ b.visited_city.name if b.visited_city else "Nieznane miasto" }}</h3>
+              <p class="text-sm text-gray-400">{{ b.hotel.address if b.hotel else "" }}</p>
+            </div>
+            <span class="{% if b.status == 'disrupted' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} px-3 py-1 rounded-full text-xs font-bold">
+              {{ "Zagrożona" if b.status == "disrupted" else "✓ Potwierdzona" }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p class="text-gray-400">Termin</p>
+              <p class="font-bold">{{ b.start_date }}</p>
+            </div>
+            <div>
+              <p class="text-gray-400">Hotel</p>
+              <p class="font-bold text-blue-600">{{ b.hotel.name if b.hotel else "Ładowanie..." }}</p>
+            </div>
+            <div>
+              <p class="text-gray-400">Lot</p>
+              <p class="font-bold">{{ b.start_flight.name if b.start_flight else "Brak" }}</p>
+            </div>
+            <div>
+              <p class="text-gray-400">Cena</p>
+              <p class="font-bold text-lg text-gray-900">{{ b.total_price }} PLN</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 w-full md:w-auto">
+          <a href="/details/{{ b.id }}" class="bg-gray-100 text-black px-6 py-2 rounded-lg text-sm font-bold text-center hover:bg-gray-200 transition">Szczegóły</a>
+        </div>
       </div>
     </div>
     {% endfor %}
   </div>
 </div>
+
+<script>
+    const meta = document.getElementById('status-meta');
+    const initialDisruptedCount = parseInt(meta.getAttribute('data-disrupted-count'));
+
+    async function checkStatusUpdates() {
+        try {
+            const response = await fetch('/api/check-disruptions');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.disrupted_count !== initialDisruptedCount) {
+                    window.location.reload();
+                }
+            }
+        } catch (e) { console.error("Refresh error"); }
+    }
+    setInterval(checkStatusUpdates, 5000);
+</script>
+
 {% endblock %}

@@ -126,13 +126,19 @@ def _get_or_create_hotel(db: Session, data: dict, city_id: int, s_date, e_date):
             end_date=e_date,
             rating=data['rating'],
             price=data['price_per_night'],
-            city_id=city_id
+            city_id=city_id,
+            has_wifi=data.get("has_wifi", False),
+            has_pool=data.get("has_pool", False),
+            has_restaurant=data.get("has_restaurant", False),
         )
         db.add(hotel)
     else:
         hotel.price = data['price_per_night']
         hotel.rating = data['rating']
         hotel.capacity = data['capacity'] 
+        hotel.has_wifi = data.get("has_wifi", hotel.has_wifi)
+        hotel.has_pool = data.get("has_pool", hotel.has_pool)
+        hotel.has_restaurant = data.get("has_restaurant", hotel.has_restaurant)
     
     db.flush()
     db.refresh(hotel)
