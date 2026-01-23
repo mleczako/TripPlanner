@@ -17,74 +17,9 @@
   </div>
   {% else %}
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {% for b in bookings %}
-    <div
-      class="bg-white rounded-3xl shadow-sm border overflow-hidden relative group transition-all hover:shadow-xl {% if b.status == 'special' %} border-orange-200 ring-2 ring-orange-100 {% endif %}"
-    >
-      <div class="relative h-56 overflow-hidden">
-        <img
-          src="{{ b.visited_city.image_url }}"
-          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
-
-        {% if b.status == 'special' %}
-        <div
-          class="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter shadow-lg"
-        >
-          <i class="fas fa-fire-alt mr-1"></i> LAST MINUTE
-        </div>
-        {% if b.discount %}
-        <div
-          class="absolute top-4 right-4 bg-black text-white px-2 py-1 rounded-md text-xs font-bold"
-        >
-          -{{ b.discount|int }}%
-        </div>
-        {% endif %}
-        <div
-          class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-red-600"
-        >
-          Ostatnie {{ b.guests }} miejsca!
-        </div>
-        {% endif %}
-      </div>
-
-      <div class="p-6">
-        <div class="flex justify-between items-start">
-          <h3 class="font-bold text-lg text-gray-800">
-            {{ b.visited_city.name }}
-          </h3>
-          <span
-            class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs font-bold"
-            >★ {{ b.rating }}</span
-          >
-        </div>
-        <p class="text-gray-400 text-xs mt-1">
-          {{ b.hotel.name }} • {{ (b.end_date - b.start_date).days }} nocy
-        </p>
-
-        <div class="mt-6 flex justify-between items-end">
-          <div>
-            {% if b.status == 'special' and b.discount %} {% set original_price
-            = b.total_price / (1 - (b.discount / 100)) %}
-            <p class="text-xs text-gray-400 line-through">
-              {{ original_price|round|int }} PLN
-            </p>
-            {% endif %}
-            <p class="text-2xl font-black text-blue-700">
-              {{ b.total_price|int }}
-              <span class="text-sm font-normal">PLN</span>
-            </p>
-          </div>
-          <a
-            href="/details/{{ b.id }}"
-            class="bg-black text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-800 transition"
-          >
-            Szczegóły
-          </a>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
+    {% for b in bookings %} {% for b in bookings %} {% with booking = b %} {%
+    include "components/stay_card.html" %} {% endwith %} {% endfor %} {% endfor
+    %}
   </div>
   {% endif %}
 </div>

@@ -1,0 +1,69 @@
+<div
+  class="bg-white rounded-3xl shadow-sm border overflow-hidden relative group transition-all hover:shadow-xl {% if booking.status == 'special' %} border-orange-200 ring-2 ring-orange-100 {% endif %}"
+>
+  <div class="relative h-56 overflow-hidden">
+    <img
+      src="{{ booking.visited_city.image_url }}"
+      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+    />
+
+    {% if booking.status == 'special' %}
+    <div
+      class="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter shadow-lg"
+    >
+      <i class="fas fa-fire-alt mr-1"></i> LAST MINUTE
+    </div>
+
+    {% if booking.discount %}
+    <div
+      class="absolute top-4 right-4 bg-black text-white px-2 py-1 rounded-md text-xs font-bold"
+    >
+      -{{ booking.discount|int }}%
+    </div>
+    {% endif %}
+
+    <div
+      class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-red-600"
+    >
+      Ostatnie {{ booking.guests }} miejsca!
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="p-6">
+    <div class="flex justify-between items-start">
+      <h3 class="font-bold text-lg text-gray-800">
+        {{ booking.visited_city.name }}
+      </h3>
+      <span
+        class="bg-yellow-400 text-white px-2 py-1 rounded-lg text-xs font-bold"
+        >★ {{ booking.rating }}</span
+      >
+    </div>
+    <p class="text-gray-400 text-xs mt-1">
+      {{ booking.hotel.name }} • {{ (booking.end_date - booking.start_date).days
+      }} nocy
+    </p>
+
+    <div class="mt-6 flex justify-between items-end">
+      <div>
+        {% if booking.status == 'special' and booking.discount %} {% set
+        original_price = booking.total_price / (1 - (booking.discount / 100)) %}
+        <p class="text-xs text-gray-400 line-through">
+          {{ original_price|round|int }} PLN
+        </p>
+        {% endif %}
+        <p class="text-2xl font-black text-blue-700">
+          {{ booking.total_price|int }}
+          <span class="text-sm font-normal">PLN</span>
+        </p>
+      </div>
+      <a
+        href="/details/{{ booking.id }}"
+        class="bg-black text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-800 transition"
+      >
+        Szczegóły
+      </a>
+    </div>
+  </div>
+</div>

@@ -3,6 +3,7 @@ from sqlalchemy import func
 from datetime import date
 import requests
 from models import Booking, City, Flight, Hotel, Transfer
+from database import SessionLocal
 
 MOCK_API_URL = "http://localhost:8001"
 
@@ -184,3 +185,19 @@ def _get_or_create_transfer(db: Session, data: dict, city_id: int, t_date):
     db.flush()
     db.refresh(transfer)
     return transfer
+
+def get_total_saved_price(bookings):
+    total_spent = sum(b.total_price for b in bookings if b.status != "canceled")
+    total_saved = 0
+    for b in bookings:
+        if b.discount and b.discount > 0 and b.status != "canceled":
+            original_price = b.total_price / (1 - (b.discount / 100))
+            total_saved += (original_price - b.total_price)
+
+    return (round(total_spent, 2), round(total_saved, 2))
+
+def get_stays_number(bookings, today: date):
+    total_res = len([b for b in bookings if b.status != "canceled"])
+    upcoming = len([b for b in bookings if b.start_date > today and b.status not in ["canceled", "completed"]])
+
+    return (total_res, upcoming)
