@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, Request, APIRouter, Form
+from services.payment_validator import validate_payment_details
 import requests
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -13,6 +14,10 @@ async def payment_page(booking_id: int, request: Request, db: Session = Depends(
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404)
+    
+    if booking.status == "prepared":
+        booking.status = "pending"
+        db.commit()
     
     return templates.TemplateResponse("payment.html", {
         "request": request, 
@@ -34,13 +39,19 @@ async def process_payment(
 
     if action == "cancel":
         print(f"LOG: Użytkownik anulował płatność dla rezerwacji {booking_id}")
+        booking.status = "prepared"
+        db.commit()
         return RedirectResponse(url=f"/details/{booking_id}", status_code=303)
 
-    if not paymentMethod or not paymentToken:
+   
+    
+    validation_error = validate_payment_details(paymentMethod, paymentToken)
+    
+    if validation_error:
         return templates.TemplateResponse("payment.html", {
             "request": request, 
             "booking": booking, 
-            "error": "Musisz wybrać metodę płatności i wpisać kod/numer karty."
+            "error": validation_error
         })
 
     MOCK_API_URL = "http://localhost:8001"
