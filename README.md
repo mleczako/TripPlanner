@@ -18,8 +18,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 cd app
-python seed.py
-python seed_data.py
+python seeder_initial.py
 
 uvicorn main:app --reload
 ```
