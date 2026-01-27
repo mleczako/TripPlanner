@@ -48,8 +48,9 @@ async def accept_alternative(
 async def change_success_view(booking_id: int, request: Request, db: Session = Depends(get_db)):
     booking = db.query(Booking).get(booking_id)
     return templates.TemplateResponse(
+        request,
         "change_success.html", 
-        {"request": request, "booking": booking}
+        { "booking": booking}
     )
 @router.post("/bookings/{booking_id}/cancel")
 def cancel_booking(
@@ -79,7 +80,7 @@ def keep_booking(
 
     return RedirectResponse(
         url="/my-bookings",
-        stmatus_code=303
+        status_code=303
     )
 
 @router.get("/booking/{booking_id}/risk")
@@ -93,8 +94,9 @@ def risk_view(
         raise HTTPException(404)
 
     return templates.TemplateResponse(
+        request,
         "risk_accept.html",
-        {"request": request, "booking": b}
+        { "booking": b}
     )
 
 @router.get("/booking/{booking_id}/alternatives/view")
@@ -113,9 +115,10 @@ def alternatives_view(
     ).all()
 
     return templates.TemplateResponse(
+        request,
         "booking_alternatives.html",
         {
-            "request": request,
+        
             "booking": booking,      
             "alternatives": alternatives
         }
@@ -132,9 +135,10 @@ def booking_alert_view(
         return RedirectResponse("/my-bookings", status_code=303)
 
     return templates.TemplateResponse(
+        request,
         "booking_alert.html",
         {
-            "request": request,
+            
             "booking": booking
         }
     )
@@ -149,9 +153,10 @@ def cancel_booking_view(
         raise HTTPException(404)
 
     return templates.TemplateResponse(
+        request,
         "booking_cancel.html",
         {
-            "request": request,
+            
             "booking": booking
         }
     )
@@ -170,9 +175,9 @@ async def alternative_details(
         raise HTTPException(status_code=404, detail="Alternatywa nie istnieje")
 
     return templates.TemplateResponse(
+        request,
         "alternative_details.html", 
         {
-            "request": request, 
             "booking": alt,      
             "original_id": booking_id
         }

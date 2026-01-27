@@ -11,6 +11,11 @@
     />
   </head>
   <body class="bg-gray-50">
+    <div id="disruption-banner" style="display: none;" class="bg-red-600 text-white text-center py-3 font-bold sticky top-[72px] z-30 shadow-lg">
+        <i class="fas fa-exclamation-triangle mr-2"></i> 
+        Jedna z Twoich rezerwacji wymaga uwagi! 
+        <a href="/my-bookings" class="underline ml-2 hover:text-red-100">Sprawdź szczegóły awarii</a>
+    </div>
     <nav class="bg-white shadow-sm p-4 sticky top-0 z-40">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <a
@@ -60,6 +65,26 @@
         const modal = document.getElementById("searchModal");
         modal.classList.toggle("hidden");
       }
+      async function checkDisruptions() {
+        try {
+          // Korzystamy z Twojego istniejącego endpointu w api.py 
+          const response = await fetch('/api/check-disruptions');
+          const data = await response.json();
+          const banner = document.getElementById('disruption-banner');
+          
+          if (data.disrupted_count > 0) {
+            banner.style.display = 'block'; // Pokazuje baner jeśli są awarie 
+          } else {
+            banner.style.display = 'none';
+          }
+        } catch (e) { 
+          console.error("Błąd sprawdzania powiadomień", e); 
+        }
+      }
+
+      // Sprawdzanie co 20 sekund [cite: 164]
+      setInterval(checkDisruptions, 20000);
+      checkDisruptions(); // Wywołaj raz przy starcie
     </script>
   </body>
 </html>

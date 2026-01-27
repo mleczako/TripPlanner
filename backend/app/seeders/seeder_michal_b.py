@@ -11,9 +11,12 @@ from models.hotel import Hotel
 from models.flight import Flight
 from models.transfer import Transfer
 
+def calculate_total_cost(days, hotel_price, flight_price, transfer_price):
+    total = (days * hotel_price) + flight_price + transfer_price
+    return total
+
 def seed_data():
     Base.metadata.create_all(bind=engine)
-    
     db = SessionLocal()
     
     past_start = datetime.date(2025, 10, 10)
@@ -69,24 +72,24 @@ def seed_data():
         # 5. Rezerwacje
         test_cases = [
             Booking(status="completed", start_date=past_start, end_date=past_end,
-                    guests=2, total_price=2400.0, visited_city_id=1, start_city_id=2,
+                    guests=2, total_price=calculate_total_cost((past_end - past_start).days, h1.price, f1_tam.price + f1_pow.price, t_par.price * 2), visited_city_id=1, start_city_id=2,
                     hotel_id=h1.id, start_flight_id=f1_tam.id, end_flight_id=f1_pow.id, 
                     start_transfer_id=t_par.id, end_transfer_id=t_par.id),
                 
             Booking(status="canceled", start_date=future_date, end_date=future_date + datetime.timedelta(days=3),
-                    guests=1, total_price=1200.0, visited_city_id=4, start_city_id=1,
+                    guests=1, total_price=calculate_total_cost((future_date + datetime.timedelta(days=3) - future_date).days, h2.price, f2_tam.price + f2_pow.price, t_tok.price * 2), visited_city_id=4, start_city_id=1,
                     hotel_id=h2.id, start_flight_id=f2_tam.id, end_flight_id=f2_pow.id, 
                     start_transfer_id=t_tok.id, end_transfer_id=t_tok.id),
 
             Booking(status="special", start_date=future_date + datetime.timedelta(days=30), 
                     end_date=future_date + datetime.timedelta(days=35),
-                    guests=2, total_price=1600.0, discount=20.0, visited_city_id=4, start_city_id=2,
+                    guests=2, total_price=calculate_total_cost((future_date + datetime.timedelta(days=35) - (future_date + datetime.timedelta(days=30))).days, h2.price, f3_tam.price + f3_pow.price, t_tok.price * 2), discount=20.0, visited_city_id=4, start_city_id=2,
                     hotel_id=h2.id, start_flight_id=f3_tam.id, end_flight_id=f3_pow.id, 
                     start_transfer_id=t_tok.id, end_transfer_id=t_tok.id),
 
             Booking(status="special", start_date=future_date + datetime.timedelta(days=120), 
                     end_date=future_date + datetime.timedelta(days=126),
-                    guests=4, total_price=76000.0, discount=60.0, visited_city_id=17, start_city_id=2,
+                    guests=4, total_price=calculate_total_cost((future_date + datetime.timedelta(days=126) - (future_date + datetime.timedelta(days=120))).days, h4.price, f4_tam.price + f4_pow.price, t_kai.price * 2), discount=60.0, visited_city_id=17, start_city_id=2,
                     hotel_id=h4.id, start_flight_id=f4_tam.id, end_flight_id=f4_pow.id, 
                     start_transfer_id=t_kai.id, end_transfer_id=t_kai.id)
         ]

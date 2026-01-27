@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden border-t-8 border-red-600">
+        
+        <div class="p-8 text-center bg-red-50">
+            <h1 class="text-3xl font-extrabold text-red-700 mb-2">⚠ Wykryto zakłócenie podróży</h1>
+            <p class="text-lg text-gray-700">Rezerwacja numer: <span class="font-mono font-bold">#{{ booking.id }}</span></p>
+            
+            <div class="mt-4 p-4 bg-white border border-red-200 rounded-lg shadow-sm">
+                <p class="text-sm uppercase tracking-widest text-gray-500 font-semibold">Komunikat systemu:</p>
+                <p class="text-xl italic text-red-600 font-medium">"{{ booking.disruption_message }}"</p>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Co chcesz teraz zrobić?</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    
+    <a href="/booking/{{ booking.id }}/alternatives/view" 
+                   class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-2 rounded-xl transition shadow-md text-sm">
+                   ZOBACZ ALTERNATYWY
+                </a>
+
+    <div class="flex flex-col">
+        {% if booking.disruption_type in ["WEATHER", "SECURITY"] %}
+                <a href="/booking/{{ booking.id }}/risk" 
+                   class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-2 rounded-xl transition shadow-md text-sm">
+                   AKCEPTUJĘ RYZYKO
+                </a>
+        {% endif %}
+    </div>
+
+    <a href="/booking/{{ booking.id }}/cancel/view" 
+                   class="flex items-center justify-center bg-gray-800 hover:bg-black text-white font-bold py-4 px-2 rounded-xl transition shadow-md text-sm">
+                   ANULUJ POBYT
+                </a>
+</div>
+        </div>
+
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <a href="/my-bookings" class="text-blue-600 hover:underline">← Powrót do listy moich rezerwacji</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
